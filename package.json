@@ -1,0 +1,32 @@
+{
+  "name": "polymatic-example-pinball",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.7",
+    "@types/xml2js": "^0.4.14",
+    "@typescript-eslint/eslint-plugin": "^8.20.0",
+    "@typescript-eslint/parser": "^8.20.0",
+    "eslint": "^9.18.0",
+    "eslint-config-prettier": "^10.0.1",
+    "typescript": "~5.6.2",
+    "vite": "^6.0.3",
+    "vite-plugin-eslint": "^1.8.1",
+    "vite-tsconfig-paths": "^5.1.4"
+  },
+  "dependencies": {
+    "events": "^3.3.0",
+    "nanoid": "^5.1.6",
+    "planck": "^1.4.2",
+    "planck-testbed": "^0.0.4",
+    "polymatic": "^0.0.12",
+    "svg-play": "^0.1.0",
+    "xml2js": "^0.6.2"
+  }
+}
