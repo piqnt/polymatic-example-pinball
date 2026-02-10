@@ -1,7 +1,17 @@
 // Copyright (c) Ali Shakiba
 // Release under the MIT License
 
-import { World, Contact, Body, CircleShape, BoxShape, ChainShape, RevoluteJoint, PolygonShape } from "planck";
+import {
+  World,
+  Contact,
+  Body,
+  CircleShape,
+  BoxShape,
+  ChainShape,
+  RevoluteJoint,
+  PolygonShape,
+  PrismaticJoint,
+} from "planck";
 
 import { Binder, Driver, Middleware } from "polymatic";
 
@@ -17,6 +27,7 @@ import {
   PLUNGER_POWER_MAX,
   SLINGSHOT_BOUNCE,
 } from "./Config";
+import { join } from "path";
 
 type BodyDataType = Ball | TablePart;
 
@@ -47,11 +58,6 @@ export class Physics extends Middleware<MainContext> {
   }
 
   handleFrameUpdate = () => {
-    // Handle plunger
-    if (this.context.plungerPressed) {
-      this.context.plungerPower = Math.min(PLUNGER_POWER_MAX, this.context.plungerPower + PLUNGER_POWER_INCREMENT);
-    }
-
     // Update context data from physics
     this.binder.data([this.context.ball, ...this.context.parts, ...this.context.flippers, this.context.plunger]);
   };
@@ -112,14 +118,7 @@ export class Physics extends Middleware<MainContext> {
     plungerBody: Body,
     plungerData: Plunger,
     contact: Contact,
-  ) {
-    if (this.context.plungerPressed && plungerData.power > 0) {
-      // Manual plunger launch
-      const impulse = { x: 0, y: -plungerData.power * 50 };
-      ballBody.applyLinearImpulse(impulse, ballBody.getWorldCenter());
-      plungerData.power = 0;
-    }
-  }
+  ) {}
 
   collideBallBumper(ball: Body, bumper: Body, contact: Contact) {
     contact.setEnabled(false);
@@ -172,7 +171,6 @@ export class Physics extends Middleware<MainContext> {
         bullet: true,
         position: data.position,
         userData: data,
-        linearDamping: 0.1,
       });
       body.createFixture({
         shape: new CircleShape(data.radius),
@@ -180,19 +178,7 @@ export class Physics extends Middleware<MainContext> {
       });
       return body;
     },
-    update: (data, body) => {
-      const pos = body.getPosition();
-      data.position.x = pos.x;
-      data.position.y = pos.y;
-      if (!this.context.plungerPressed && this.context.plungerPower > 0) {
-        // Launch ball
-        if (data.type === "ball" && body) {
-          const impulse = { x: 0, y: this.context.plungerPower };
-          body.applyLinearImpulse(impulse, body.getWorldCenter());
-        }
-        this.context.plungerPower = 0;
-      }
-    },
+    update: (data, body) => {},
     exit: (data, body) => {
       this.world.destroyBody(body);
     },
@@ -206,7 +192,7 @@ export class Physics extends Middleware<MainContext> {
         userData: data,
       });
 
-      const shape = new ChainShape(data.points, false);
+      const shape = new ChainShape(data.vertices, false);
       body.createFixture({
         shape,
         restitution: 0.3,
@@ -235,7 +221,7 @@ export class Physics extends Middleware<MainContext> {
       body.createFixture({
         shape,
         density: FLIPPER_DENSITY,
-        restitution: 0.8,
+        restitution: 0.1,
       });
 
       const anchorBody = this.world.createBody({ type: "static" });
@@ -292,21 +278,71 @@ export class Physics extends Middleware<MainContext> {
     },
   });
 
-  plungerDriver = Driver.create<Plunger, Body>({
+  plungerDriver = Driver.create<Plunger, { joint: PrismaticJoint; body: Body }>({
     filter: (data) => data.type === "plunger",
     enter: (data) => {
+      let xMin = Infinity;
+      let xMax = -Infinity;
+      let yMin = Infinity;
+      let yMax = -Infinity;
+      for (const vertices of data.fixtures) {
+        for (const v of vertices) {
+          if (v.x < xMin) xMin = v.x;
+          if (v.x > xMax) xMax = v.x;
+          if (v.y < yMin) yMin = v.y;
+          if (v.y > yMax) yMax = v.y;
+        }
+      }
+      const center = { x: (xMin + xMax) / 2, y: (yMin + yMax) / 2 };
       const body = this.world.createBody({
-        type: "static",
+        type: "dynamic",
+        position: center,
         userData: data,
+        bullet: true,
+        fixedRotation: true,
       });
-      body.createFixture({
-        shape: new BoxShape(0.5, 1, { x: 0, y: 0 }, 0),
-        density: 1,
-      });
-      return body;
+      for (const vertices of data.fixtures) {
+        for (const v of vertices) {
+          v.x -= center.x;
+          v.y -= center.y;
+        }
+        body.createFixture({
+          shape: new PolygonShape(vertices),
+          density: 0.01,
+        });
+      }
+
+      const ground = this.world.createBody({ type: "static" });
+
+      const joint = this.world.createJoint(
+        new PrismaticJoint(
+          {
+            lowerTranslation: 0,
+            upperTranslation: 0,
+            enableLimit: true,
+            motorSpeed: 15,
+            maxMotorForce: 10000,
+            enableMotor: true,
+          },
+          ground,
+          body,
+          center,
+          { x: 0, y: 1 },
+        ),
+      );
+
+      return { body, joint };
     },
-    update: (data, body) => {},
-    exit: (data, body) => {
+    update: (data, { joint, body }) => {
+      if (this.context.plungerPressed) {
+        this.context.plungerPower = Math.min(PLUNGER_POWER_MAX, this.context.plungerPower + PLUNGER_POWER_INCREMENT);
+        joint.setLimits(-PLUNGER_POWER_MAX * 1.1, -this.context.plungerPower);
+      } else {
+        this.context.plungerPower = Math.max(0, this.context.plungerPower - PLUNGER_POWER_INCREMENT);
+        joint.setLimits(-PLUNGER_POWER_MAX * 1.1, this.context.plungerPower);
+      }
+    },
+    exit: (data, { body }) => {
       this.world.destroyBody(body);
     },
   });
@@ -339,7 +375,7 @@ export class Physics extends Middleware<MainContext> {
         userData: data,
       });
 
-      const shape = new ChainShape(data.points, false);
+      const shape = new ChainShape(data.vertices, false);
       body.createFixture({
         shape,
       });

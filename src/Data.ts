@@ -1,18 +1,15 @@
 // Copyright (c) Ali Shakiba
 // Release under the MIT License
 
-interface Point {
-  x: number;
-  y: number;
-}
+import { Vec2Value } from "planck";
 
 export class Ball {
   key = "ball-" + Math.random();
   type = "ball" as const;
 
-  position: Point;
+  position: Vec2Value;
   radius: number;
-  init: Point;
+  init: Vec2Value;
 
   constructor(position = { x: 0, y: 0 }, r = 0.4) {
     console.log("Ball", position, r);
@@ -26,11 +23,11 @@ export class Wall {
   key = "wall-" + Math.random();
   type = "wall" as const;
 
-  points: Point[];
+  vertices: Vec2Value[];
 
-  constructor(points: Point[]) {
+  constructor(points: Vec2Value[]) {
     console.log("Wall", points);
-    this.points = points;
+    this.vertices = points;
   }
 }
 
@@ -38,11 +35,11 @@ export class Drain {
   key = "drain-" + Math.random();
   type = "drain" as const;
 
-  points: Point[];
+  vertices: Vec2Value[];
 
-  constructor(points: Point[]) {
+  constructor(points: Vec2Value[]) {
     console.log("Drain", points);
-    this.points = points;
+    this.vertices = points;
   }
 }
 
@@ -51,10 +48,10 @@ export class Flipper {
   type = "flipper" as const;
 
   isLeft = true;
-  points: Point[];
-  anchor: Point;
+  points: Vec2Value[];
+  anchor: Vec2Value;
 
-  constructor(anchor: Point, points: Point[], isLeft = true) {
+  constructor(anchor: Vec2Value, points: Vec2Value[], isLeft = true) {
     console.log("Flipper", points, isLeft);
     this.anchor = anchor;
     this.points = points;
@@ -66,10 +63,10 @@ export class Bumper {
   key = "bumper-" + Math.random();
   type = "bumper" as const;
 
-  position: Point;
+  position: Vec2Value;
   radius = 1;
 
-  constructor(position: Point, r: number = 1) {
+  constructor(position: Vec2Value, r: number = 1) {
     console.log("Bumper", position, r);
     this.position = position;
     this.radius = r;
@@ -81,11 +78,11 @@ export class Plunger {
   type = "plunger" as const;
 
   power = 0; // 0 to 1
-  points: Point[];
 
-  constructor(points: Point[]) {
-    console.log("Plunger", points);
-    this.points = points;
+  fixtures: Vec2Value[][] = [];
+
+  constructor() {
+    console.log("Plunger");
   }
 }
 
@@ -93,10 +90,10 @@ export class Kicker {
   key = "kicker-" + Math.random();
   type = "kicker" as const;
 
-  points: Point[];
-  anchor: Point;
+  points: Vec2Value[];
+  anchor: Vec2Value;
 
-  constructor(points: Point[]) {
+  constructor(points: Vec2Value[]) {
     // calculate the middle point of all points
     console.log("Kicker", JSON.stringify(points));
     const midX = points.reduce((sum, p) => sum + p.x, 0) / points.length;
@@ -111,11 +108,11 @@ export class Slingshot {
   key = "slingshot-" + Math.random();
   type = "slingshot" as const;
 
-  points: Point[];
+  vertices: Vec2Value[];
 
-  constructor(points: Point[]) {
+  constructor(points: Vec2Value[]) {
     console.log("Slingshot", points);
-    this.points = points;
+    this.vertices = points;
   }
 }
 

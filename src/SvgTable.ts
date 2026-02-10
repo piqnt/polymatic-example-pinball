@@ -24,8 +24,6 @@ export class SvgTable extends Middleware<MainContext> {
     this.context.parts = [];
     this.context.flippers = [];
 
-    // this.context.plunger = new Plunger({ x: 21.25, y: 29 });
-
     this.context.plungerPressed = false;
     this.context.plungerPower = 0;
 
@@ -43,6 +41,7 @@ export class SvgTable extends Middleware<MainContext> {
     this.context.camera.height = height;
     this.context.camera.x = width / 2;
     this.context.camera.y = height / 2;
+    console.log("SVG loaded", { width, height });
   }
 
   leftFlipperAnchor: Vec2Value;
@@ -52,7 +51,7 @@ export class SvgTable extends Middleware<MainContext> {
 
   factory: Factory = {
     circle: (node, p: Vec2Value, radius: number) => {
-      const type = node.$?.["inkscape:label"];
+      const type = getType(node);
       console.log("Circle:", type, node, p, radius);
 
       if (type === "bumper") {
@@ -67,8 +66,9 @@ export class SvgTable extends Middleware<MainContext> {
         this.createRightFlipper();
       }
     },
+
     edge: (node: any, p1: Vec2Value, p2: Vec2Value) => {
-      const type = node.$?.["inkscape:label"];
+      const type = getType(node);
       console.log("Edge:", type, node, p1, p2);
 
       if (type === "slingshot") {
@@ -80,52 +80,60 @@ export class SvgTable extends Middleware<MainContext> {
       }
     },
 
-    chain: (node, points: Vec2Value[]) => {
-      const type = node.$?.["inkscape:label"];
+    chain: (node, vertices: Vec2Value[]) => {
+      const type = getType(node);
       console.log("Chain:", type, type, node);
 
       if (type === "flipper-left") {
-        this.leftFlipperBody = points;
+        this.leftFlipperBody = vertices;
         this.createLeftFlipper();
       } else if (type === "flipper-right") {
-        this.rightFlipperBody = points;
+        this.rightFlipperBody = vertices;
         this.createRightFlipper();
       } else if (type === "flipper-left") {
-        this.leftFlipperBody = points;
+        this.leftFlipperBody = vertices;
         this.createLeftFlipper();
       } else if (type === "flipper-right") {
-        this.rightFlipperBody = points;
+        this.rightFlipperBody = vertices;
         this.createRightFlipper();
       } else if (type === "drain") {
-        this.createDrain(points);
+        this.createDrain(vertices);
+      } else if (type === "plunger") {
+        this.createPlunger(vertices);
       } else {
-        this.createWall(points);
+        this.createWall(vertices);
       }
     },
 
     box: (node, width: number, height: number, center: { x: number; y: number }, angle: number) => {
-      const type = node.$?.["inkscape:label"];
+      const type = getType(node);
       console.log("Box:", type, node);
+      const vertices = [
+        { x: center.x - width / 2, y: center.y - height / 2 },
+        { x: center.x + width / 2, y: center.y - height / 2 },
+        { x: center.x + width / 2, y: center.y + height / 2 },
+      ];
 
       if (type === "kicker") {
-        this.createKicker([
-          { x: center.x - width / 2, y: center.y - height / 2 },
-          { x: center.x + width / 2, y: center.y - height / 2 },
-          { x: center.x + width / 2, y: center.y + height / 2 },
-        ]);
+        this.createKicker(vertices);
+      } else if (type === "plunger") {
+        this.createPlunger(vertices);
       }
     },
-    polygon: (node, points: Vec2[]): void => {
-      const type = node.$?.["inkscape:label"];
-      console.log("Polygon:", type, node, points);
+
+    polygon: (node, vertices: Vec2[]): void => {
+      const type = getType(node);
+      console.log("Polygon:", type, node, vertices);
 
       if (type === "kicker") {
-        this.createKicker(points);
+        this.createKicker(vertices);
+      } else if (type === "plunger") {
+        this.createPlunger(vertices);
       } else if (type === "flipper-left") {
-        this.leftFlipperBody = points;
+        this.leftFlipperBody = vertices;
         this.createLeftFlipper();
       } else if (type === "flipper-right") {
-        this.rightFlipperBody = points;
+        this.rightFlipperBody = vertices;
         this.createRightFlipper();
       }
     },
@@ -173,4 +181,15 @@ export class SvgTable extends Middleware<MainContext> {
     const part = new Kicker(points);
     this.context.parts.push(part);
   }
+
+  createPlunger(points: Vec2Value[]) {
+    if (!this.context.plunger) {
+      this.context.plunger = new Plunger();
+    }
+    this.context.plunger.fixtures.push(points);
+  }
 }
+
+const getType = (node: any): string | undefined => {
+  return node.$?.["inkscape:label"] || node.$?.["data-pinball-type"];
+};

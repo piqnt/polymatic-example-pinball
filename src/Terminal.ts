@@ -43,7 +43,11 @@ export class Terminal extends Middleware<MainContext> {
     // Handle input
     const leftPressed = this.keysPressed.has("ArrowLeft") || this.keysPressed.has("KeyA");
     const rightPressed = this.keysPressed.has("ArrowRight") || this.keysPressed.has("KeyD");
-    const plungerPressed = this.keysPressed.has("Space") || this.keysPressed.has("Enter");
+    const plungerPressed =
+      this.keysPressed.has("Space") ||
+      this.keysPressed.has("Enter") ||
+      this.keysPressed.has("KeyS") ||
+      this.keysPressed.has("ArrowDown");
 
     // Set context fields
     this.context.leftFlipperPressed = leftPressed;
@@ -65,6 +69,7 @@ export class Terminal extends Middleware<MainContext> {
     const direction = event.x - this.context.camera.x;
     if (direction > 0) {
       this.keysPressed.add("ArrowRight");
+      this.keysPressed.add("ArrowDown");
     } else {
       this.keysPressed.add("ArrowLeft");
     }
@@ -72,5 +77,6 @@ export class Terminal extends Middleware<MainContext> {
   handlePointerEnd = (event: Vec2Value) => {
     this.keysPressed.delete("ArrowRight");
     this.keysPressed.delete("ArrowLeft");
+    this.keysPressed.delete("ArrowDown");
   };
 }
