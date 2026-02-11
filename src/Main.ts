@@ -2,24 +2,26 @@
 // Release under the MIT License
 
 import { Middleware } from "polymatic";
+import { DefaultTestbedContext, TestbedMain } from "planck-testbed/v1";
+
 import { Physics } from "./Physics";
-import { Terminal } from "./Terminal";
 import { SvgTable } from "./SvgTable";
 import { Ball, Flipper, Plunger, TablePart } from "./Data";
-import { DefaultTestbedContext, TestbedMain } from "planck-testbed/v1";
+import { InputManager } from "./Input";
+import { PointerInfo } from "./Pointer";
 
 export class MainContext extends DefaultTestbedContext {
   ball: Ball;
   parts: TablePart[];
   plunger: Plunger;
   flippers: Flipper[];
-  leftFlipperPressed: boolean;
-  rightFlipperPressed: boolean;
-  plungerPressed: boolean;
-  plungerPower: number;
-  constructor() {
-    super();
-  }
+
+  activePointers: Map<number, PointerInfo> = new Map();
+  keysPressed = new Set<string>();
+
+  leftFlipperPressed = false;
+  rightFlipperPressed = false;
+  plungerPressed = false;
 }
 
 export class Main extends Middleware<MainContext> {
@@ -27,7 +29,7 @@ export class Main extends Middleware<MainContext> {
     super();
     this.use(new SvgTable());
     this.use(new Physics());
-    this.use(new Terminal());
+    this.use(new InputManager());
     this.use(new TestbedMain());
   }
 }

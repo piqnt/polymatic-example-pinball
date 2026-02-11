@@ -23,9 +23,7 @@ export class SvgTable extends Middleware<MainContext> {
   async handleActivate() {
     this.context.parts = [];
     this.context.flippers = [];
-
-    this.context.plungerPressed = false;
-    this.context.plungerPower = 0;
+    this.context.ball = null;
 
     console.log(svgRaw);
 

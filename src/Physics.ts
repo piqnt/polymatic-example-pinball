@@ -335,11 +335,11 @@ export class Physics extends Middleware<MainContext> {
     },
     update: (data, { joint, body }) => {
       if (this.context.plungerPressed) {
-        this.context.plungerPower = Math.min(PLUNGER_POWER_MAX, this.context.plungerPower + PLUNGER_POWER_INCREMENT);
-        joint.setLimits(-PLUNGER_POWER_MAX * 1.1, -this.context.plungerPower);
+        data.power = Math.min(PLUNGER_POWER_MAX, data.power + PLUNGER_POWER_INCREMENT);
+        joint.setLimits(-PLUNGER_POWER_MAX * 1.1, -data.power);
       } else {
-        this.context.plungerPower = Math.max(0, this.context.plungerPower - PLUNGER_POWER_INCREMENT);
-        joint.setLimits(-PLUNGER_POWER_MAX * 1.1, this.context.plungerPower);
+        data.power = Math.max(0, data.power - PLUNGER_POWER_INCREMENT);
+        joint.setLimits(-PLUNGER_POWER_MAX * 1.1, data.power);
       }
     },
     exit: (data, { body }) => {

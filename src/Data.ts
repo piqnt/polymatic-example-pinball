@@ -77,7 +77,7 @@ export class Plunger {
   key = "plunger-" + Math.random();
   type = "plunger" as const;
 
-  power = 0; // 0 to 1
+  power = 0;
 
   fixtures: Vec2Value[][] = [];
 
