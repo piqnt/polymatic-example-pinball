@@ -13,7 +13,7 @@ export class Ball {
   radius: number;
   init: Vec2Value;
 
-  constructor(position = { x: 0, y: 0 }, r = 0.4) {
+  constructor(position: Vec2Value, r: number) {
     DEBUG && console.log("Ball", position, r);
     this.position = position;
     this.init = { x: position.x, y: position.y };
@@ -25,11 +25,14 @@ export class Wall {
   key = "wall-" + Math.random();
   type = "wall" as const;
 
+  position: Vec2Value;
   vertices: Vec2Value[];
 
-  constructor(points: Vec2Value[]) {
-    DEBUG && console.log("Wall", points);
-    this.vertices = points;
+  constructor(vertices: Vec2Value[]) {
+    DEBUG && console.log("Wall", vertices);
+    const meta = metaVertices(vertices);
+    this.position = meta.center;
+    this.vertices = unshiftVertices(vertices, meta.center);
   }
 }
 
@@ -37,11 +40,14 @@ export class Drain {
   key = "drain-" + Math.random();
   type = "drain" as const;
 
+  position: Vec2Value;
   vertices: Vec2Value[];
 
-  constructor(points: Vec2Value[]) {
-    DEBUG && console.log("Drain", points);
-    this.vertices = points;
+  constructor(vertices: Vec2Value[]) {
+    DEBUG && console.log("Drain", vertices);
+    const meta = metaVertices(vertices);
+    this.position = meta.center;
+    this.vertices = unshiftVertices(vertices, meta.center);
   }
 }
 
@@ -50,13 +56,17 @@ export class Flipper {
   type = "flipper" as const;
 
   isLeft = true;
-  points: Vec2Value[];
+  position: Vec2Value;
+  vertices: Vec2Value[];
+  // joint anchor point
   anchor: Vec2Value;
 
-  constructor(anchor: Vec2Value, points: Vec2Value[], isLeft = true) {
-    DEBUG && console.log("Flipper", points, isLeft);
+  constructor(anchor: Vec2Value, vertices: Vec2Value[], isLeft = true) {
+    DEBUG && console.log("Flipper", vertices, isLeft);
     this.anchor = anchor;
-    this.points = points;
+    const meta = metaVertices(vertices);
+    this.position = meta.center;
+    this.vertices = unshiftVertices(vertices, meta.center);
     this.isLeft = isLeft;
   }
 }
@@ -81,10 +91,14 @@ export class Plunger {
 
   power = 0;
 
-  fixtures: Vec2Value[][] = [];
+  position: Vec2Value;
+  vertices: Vec2Value[];
 
-  constructor() {
-    DEBUG && console.log("Plunger");
+  constructor(vertices: Vec2Value[]) {
+    DEBUG && console.log("Plunger", vertices);
+    const meta = metaVertices(vertices);
+    this.position = meta.center;
+    this.vertices = unshiftVertices(vertices, meta.center);
   }
 }
 
@@ -92,17 +106,14 @@ export class Kicker {
   key = "kicker-" + Math.random();
   type = "kicker" as const;
 
-  points: Vec2Value[];
-  anchor: Vec2Value;
+  position: Vec2Value;
+  vertices: Vec2Value[];
 
-  constructor(points: Vec2Value[]) {
-    // calculate the middle point of all points
-    DEBUG && console.log("Kicker", JSON.stringify(points));
-    const midX = points.reduce((sum, p) => sum + p.x, 0) / points.length;
-    const midY = points.reduce((sum, p) => sum + p.y, 0) / points.length;
-    this.anchor = { x: midX, y: midY };
-    this.points = points.map((p) => ({ x: p.x - midX, y: p.y - midY }));
-    DEBUG && console.log("Kicker", JSON.stringify(this.points), this.anchor);
+  constructor(vertices: Vec2Value[]) {
+    DEBUG && console.log("Kicker", vertices);
+    const meta = metaVertices(vertices);
+    this.position = meta.center;
+    this.vertices = unshiftVertices(vertices, meta.center);
   }
 }
 
@@ -110,12 +121,41 @@ export class Slingshot {
   key = "slingshot-" + Math.random();
   type = "slingshot" as const;
 
+  position: Vec2Value;
   vertices: Vec2Value[];
 
-  constructor(points: Vec2Value[]) {
-    DEBUG && console.log("Slingshot", points);
-    this.vertices = points;
+  constructor(vertices: Vec2Value[]) {
+    DEBUG && console.log("Slingshot", vertices);
+    const meta = metaVertices(vertices);
+    this.position = meta.center;
+    this.vertices = unshiftVertices(vertices, meta.center);
   }
 }
 
 export type TablePart = Wall | Flipper | Bumper | Plunger | Kicker | Slingshot | Drain;
+
+export const metaVertices = (vertices: Vec2Value[]) => {
+  let xMin = Infinity;
+  let xMax = -Infinity;
+  let yMin = Infinity;
+  let yMax = -Infinity;
+  for (const v of vertices) {
+    if (v.x < xMin) xMin = v.x;
+    if (v.x > xMax) xMax = v.x;
+    if (v.y < yMin) yMin = v.y;
+    if (v.y > yMax) yMax = v.y;
+  }
+  return {
+    min: { x: xMin, y: yMin },
+    max: { x: xMax, y: yMax },
+    center: { x: (xMin + xMax) / 2, y: (yMin + yMax) / 2 },
+  };
+};
+
+export const unshiftVertices = (vertices: Vec2Value[], offset: Vec2Value): Vec2Value[] => {
+  return vertices.map((v) => ({ x: v.x - offset.x, y: v.y - offset.y }));
+};
+
+export const shiftVertices = (vertices: Vec2Value[], offset: Vec2Value): Vec2Value[] => {
+  return vertices.map((v) => ({ x: v.x + offset.x, y: v.y + offset.y }));
+};

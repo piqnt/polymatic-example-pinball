@@ -145,18 +145,18 @@ export class SvgTable extends Middleware<MainContext> {
     },
   };
 
-  createBall(points: Vec2Value, r: number) {
-    const ball = new Ball(points, r);
+  createBall(vertices: Vec2Value, r: number) {
+    const ball = new Ball(vertices, r);
     this.context.ball = ball;
   }
 
-  createWall(points: Vec2Value[]) {
-    const part = new Wall(points);
+  createWall(vertices: Vec2Value[]) {
+    const part = new Wall(vertices);
     this.context.parts.push(part);
   }
 
-  createDrain(points: Vec2Value[]) {
-    const part = new Drain(points);
+  createDrain(vertices: Vec2Value[]) {
+    const part = new Drain(vertices);
     this.context.parts.push(part);
   }
 
@@ -178,21 +178,18 @@ export class SvgTable extends Middleware<MainContext> {
     this.context.parts.push(part);
   }
 
-  createSlingshot(points: Vec2Value[]) {
-    const part = new Slingshot(points);
+  createSlingshot(vertices: Vec2Value[]) {
+    const part = new Slingshot(vertices);
     this.context.parts.push(part);
   }
 
-  createKicker(points: Vec2Value[]) {
-    const part = new Kicker(points);
+  createKicker(vertices: Vec2Value[]) {
+    const part = new Kicker(vertices);
     this.context.parts.push(part);
   }
 
-  createPlunger(points: Vec2Value[]) {
-    if (!this.context.plunger) {
-      this.context.plunger = new Plunger();
-    }
-    this.context.plunger.fixtures.push(points);
+  createPlunger(vertices: Vec2Value[]) {
+    this.context.plunger = new Plunger(vertices);
   }
 }
 

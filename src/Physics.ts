@@ -6,7 +6,6 @@ import {
   Contact,
   Body,
   CircleShape,
-  BoxShape,
   ChainShape,
   RevoluteJoint,
   PolygonShape,
@@ -27,7 +26,6 @@ import {
   PLUNGER_POWER_MAX,
   SLINGSHOT_BOUNCE,
 } from "./Config";
-import { join } from "path";
 
 type BodyDataType = Ball | TablePart;
 
@@ -189,6 +187,7 @@ export class Physics extends Middleware<MainContext> {
     enter: (data) => {
       const body = this.world.createBody({
         type: "static",
+        position: data.position,
         userData: data,
       });
 
@@ -209,15 +208,13 @@ export class Physics extends Middleware<MainContext> {
   flipperDriver = Driver.create<Flipper, { body: Body; anchor: Body; joint: RevoluteJoint }>({
     filter: (data) => data.type === "flipper",
     enter: (data) => {
-      const points = data.points.map((p) => ({ x: p.x - data.anchor.x, y: p.y - data.anchor.y }));
-
       const body = this.world.createBody({
         type: "dynamic",
-        position: data.anchor,
+        position: data.position,
         angle: 0,
         userData: data,
       });
-      const shape = new PolygonShape(points);
+      const shape = new PolygonShape(data.vertices);
       body.createFixture({
         shape,
         density: FLIPPER_DENSITY,
@@ -281,36 +278,17 @@ export class Physics extends Middleware<MainContext> {
   plungerDriver = Driver.create<Plunger, { joint: PrismaticJoint; body: Body }>({
     filter: (data) => data.type === "plunger",
     enter: (data) => {
-      let xMin = Infinity;
-      let xMax = -Infinity;
-      let yMin = Infinity;
-      let yMax = -Infinity;
-      for (const vertices of data.fixtures) {
-        for (const v of vertices) {
-          if (v.x < xMin) xMin = v.x;
-          if (v.x > xMax) xMax = v.x;
-          if (v.y < yMin) yMin = v.y;
-          if (v.y > yMax) yMax = v.y;
-        }
-      }
-      const center = { x: (xMin + xMax) / 2, y: (yMin + yMax) / 2 };
       const body = this.world.createBody({
         type: "dynamic",
-        position: center,
+        position: data.position,
         userData: data,
         bullet: true,
         fixedRotation: true,
       });
-      for (const vertices of data.fixtures) {
-        for (const v of vertices) {
-          v.x -= center.x;
-          v.y -= center.y;
-        }
-        body.createFixture({
-          shape: new PolygonShape(vertices),
-          density: 0.01,
-        });
-      }
+      body.createFixture({
+        shape: new PolygonShape(data.vertices),
+        density: 0.01,
+      });
 
       const ground = this.world.createBody({ type: "static" });
 
@@ -326,7 +304,7 @@ export class Physics extends Middleware<MainContext> {
           },
           ground,
           body,
-          center,
+          data.position,
           { x: 0, y: 1 },
         ),
       );
@@ -353,10 +331,10 @@ export class Physics extends Middleware<MainContext> {
       const body = this.world.createBody({
         type: "static",
         userData: data,
-        position: data.anchor,
+        position: data.position,
       });
       body.createFixture({
-        shape: new PolygonShape(data.points),
+        shape: new PolygonShape(data.vertices),
         density: 1,
       });
       return body;
@@ -372,6 +350,7 @@ export class Physics extends Middleware<MainContext> {
     enter: (data) => {
       const body = this.world.createBody({
         type: "static",
+        position: data.position,
         userData: data,
       });
 
