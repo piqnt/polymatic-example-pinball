@@ -23,8 +23,8 @@
   "dependencies": {
     "events": "^3.3.0",
     "nanoid": "^5.1.6",
-    "planck": "^1.4.2",
-    "planck-testbed": "^0.0.4",
+    "planck": "^1.4.3",
+    "planck-testbed": "^0.0.7",
     "polymatic": "^0.0.12",
     "svg-play": "^0.1.0",
     "xml2js": "^0.6.2"

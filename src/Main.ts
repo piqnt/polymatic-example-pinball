@@ -2,7 +2,7 @@
 // Release under the MIT License
 
 import { Middleware } from "polymatic";
-import { DefaultTestbedContext, TestbedMain } from "planck-testbed/v1";
+import { ContainerLoader, DefaultTestbedContext, FrameLoop, StageLoader, WorldStep, WorldView } from "planck-testbed";
 
 import { Physics } from "./Physics";
 import { SvgTable } from "./SvgTable";
@@ -27,9 +27,16 @@ export class MainContext extends DefaultTestbedContext {
 export class Main extends Middleware<MainContext> {
   constructor() {
     super();
+    // imported from planck-testbed, for rendering the world
+    this.use(new FrameLoop());
+    this.use(new ContainerLoader());
+    this.use(new StageLoader());
+    this.use(new WorldStep());
+    this.use(new WorldView());
+
+    // pinball middlewares
     this.use(new SvgTable());
     this.use(new Physics());
     this.use(new InputManager());
-    this.use(new TestbedMain());
   }
 }

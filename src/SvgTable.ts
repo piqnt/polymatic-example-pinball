@@ -37,8 +37,8 @@ export class SvgTable extends Middleware<MainContext> {
     const viewbox = svg.$.viewBox.split(" ").map(parseFloat);
     const width = viewbox[2] / UNIT_PER_METER;
     const height = viewbox[3] / UNIT_PER_METER;
-    this.context.camera.width = width;
-    this.context.camera.height = height;
+    this.context.camera.width = width * 1.1;
+    this.context.camera.height = height * 1.1;
     this.context.camera.x = width / 2;
     this.context.camera.y = height / 2;
 
