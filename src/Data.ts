@@ -3,6 +3,8 @@
 
 import { Vec2Value } from "planck";
 
+const DEBUG = false;
+
 export class Ball {
   key = "ball-" + Math.random();
   type = "ball" as const;
@@ -12,7 +14,7 @@ export class Ball {
   init: Vec2Value;
 
   constructor(position = { x: 0, y: 0 }, r = 0.4) {
-    console.log("Ball", position, r);
+    DEBUG && console.log("Ball", position, r);
     this.position = position;
     this.init = { x: position.x, y: position.y };
     this.radius = r;
@@ -26,7 +28,7 @@ export class Wall {
   vertices: Vec2Value[];
 
   constructor(points: Vec2Value[]) {
-    console.log("Wall", points);
+    DEBUG && console.log("Wall", points);
     this.vertices = points;
   }
 }
@@ -38,7 +40,7 @@ export class Drain {
   vertices: Vec2Value[];
 
   constructor(points: Vec2Value[]) {
-    console.log("Drain", points);
+    DEBUG && console.log("Drain", points);
     this.vertices = points;
   }
 }
@@ -52,7 +54,7 @@ export class Flipper {
   anchor: Vec2Value;
 
   constructor(anchor: Vec2Value, points: Vec2Value[], isLeft = true) {
-    console.log("Flipper", points, isLeft);
+    DEBUG && console.log("Flipper", points, isLeft);
     this.anchor = anchor;
     this.points = points;
     this.isLeft = isLeft;
@@ -67,7 +69,7 @@ export class Bumper {
   radius = 1;
 
   constructor(position: Vec2Value, r: number = 1) {
-    console.log("Bumper", position, r);
+    DEBUG && console.log("Bumper", position, r);
     this.position = position;
     this.radius = r;
   }
@@ -82,7 +84,7 @@ export class Plunger {
   fixtures: Vec2Value[][] = [];
 
   constructor() {
-    console.log("Plunger");
+    DEBUG && console.log("Plunger");
   }
 }
 
@@ -95,12 +97,12 @@ export class Kicker {
 
   constructor(points: Vec2Value[]) {
     // calculate the middle point of all points
-    console.log("Kicker", JSON.stringify(points));
+    DEBUG && console.log("Kicker", JSON.stringify(points));
     const midX = points.reduce((sum, p) => sum + p.x, 0) / points.length;
     const midY = points.reduce((sum, p) => sum + p.y, 0) / points.length;
     this.anchor = { x: midX, y: midY };
     this.points = points.map((p) => ({ x: p.x - midX, y: p.y - midY }));
-    console.log("Kicker", JSON.stringify(this.points), this.anchor);
+    DEBUG && console.log("Kicker", JSON.stringify(this.points), this.anchor);
   }
 }
 
@@ -111,7 +113,7 @@ export class Slingshot {
   vertices: Vec2Value[];
 
   constructor(points: Vec2Value[]) {
-    console.log("Slingshot", points);
+    DEBUG && console.log("Slingshot", points);
     this.vertices = points;
   }
 }

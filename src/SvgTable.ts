@@ -11,6 +11,8 @@ import { Ball, Wall, Flipper, Bumper, Plunger, Kicker, Slingshot, TablePart, Dra
 import svgRaw from "./svg-table/ghost.svg?raw";
 import { UNIT_PER_METER } from "./Config";
 
+const DEBUG = false;
+
 /**
  * Middleware to load SVG file and create table parts.
  */
@@ -25,7 +27,7 @@ export class SvgTable extends Middleware<MainContext> {
     this.context.flippers = [];
     this.context.ball = null;
 
-    console.log(svgRaw);
+    DEBUG && console.log(svgRaw);
 
     const svg = await svgFactory(svgRaw, this.factory, {
       meterPerPixelRatio: 1 / UNIT_PER_METER,
@@ -39,7 +41,8 @@ export class SvgTable extends Middleware<MainContext> {
     this.context.camera.height = height;
     this.context.camera.x = width / 2;
     this.context.camera.y = height / 2;
-    console.log("SVG loaded", { width, height });
+
+    DEBUG && console.log("SVG loaded", { width, height });
   }
 
   leftFlipperAnchor: Vec2Value;
@@ -48,26 +51,28 @@ export class SvgTable extends Middleware<MainContext> {
   rightFlipperBody: Vec2Value[];
 
   factory: Factory = {
-    circle: (node, p: Vec2Value, radius: number) => {
-      const type = getType(node);
-      console.log("Circle:", type, node, p, radius);
+    circle: (node, center: Vec2Value, radius: number) => {
+      logSvgComponent("circle", node, { p: center, radius });
+
+      const type = getLabel(node);
 
       if (type === "bumper") {
-        this.createBumper(p, radius);
+        this.createBumper(center, radius);
       } else if (type === "ball") {
-        this.createBall(p, radius);
+        this.createBall(center, radius);
       } else if (type === "flipper-anchor-left") {
-        this.leftFlipperAnchor = p;
+        this.leftFlipperAnchor = center;
         this.createLeftFlipper();
       } else if (type === "flipper-anchor-right") {
-        this.rightFlipperAnchor = p;
+        this.rightFlipperAnchor = center;
         this.createRightFlipper();
       }
     },
 
     edge: (node: any, p1: Vec2Value, p2: Vec2Value) => {
-      const type = getType(node);
-      console.log("Edge:", type, node, p1, p2);
+      logSvgComponent("edge", node, { p1, p2 });
+
+      const type = getLabel(node);
 
       if (type === "slingshot") {
         this.createSlingshot([p1, p2]);
@@ -79,8 +84,9 @@ export class SvgTable extends Middleware<MainContext> {
     },
 
     chain: (node, vertices: Vec2Value[]) => {
-      const type = getType(node);
-      console.log("Chain:", type, type, node);
+      logSvgComponent("chain", node, { vertices });
+
+      const type = getLabel(node);
 
       if (type === "flipper-left") {
         this.leftFlipperBody = vertices;
@@ -104,8 +110,9 @@ export class SvgTable extends Middleware<MainContext> {
     },
 
     box: (node, width: number, height: number, center: { x: number; y: number }, angle: number) => {
-      const type = getType(node);
-      console.log("Box:", type, node);
+      logSvgComponent("box", node, { width, height, center });
+
+      const type = getLabel(node);
       const vertices = [
         { x: center.x - width / 2, y: center.y - height / 2 },
         { x: center.x + width / 2, y: center.y - height / 2 },
@@ -120,8 +127,9 @@ export class SvgTable extends Middleware<MainContext> {
     },
 
     polygon: (node, vertices: Vec2[]): void => {
-      const type = getType(node);
-      console.log("Polygon:", type, node, vertices);
+      logSvgComponent("polygon", node, { vertices });
+
+      const type = getLabel(node);
 
       if (type === "kicker") {
         this.createKicker(vertices);
@@ -188,6 +196,12 @@ export class SvgTable extends Middleware<MainContext> {
   }
 }
 
-const getType = (node: any): string | undefined => {
-  return node.$?.["inkscape:label"] || node.$?.["data-pinball-type"];
+const logSvgComponent = (shape: string, node: any, data: any) => {
+  if (!DEBUG) return;
+  const label = getLabel(node);
+  console.log("SVG Shape:", shape, label, node, data);
+};
+
+const getLabel = (node: any): string | undefined => {
+  return node.$?.["inkscape:label"] || node.$?.["data-pinball-label"];
 };
