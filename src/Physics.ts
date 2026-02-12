@@ -225,8 +225,8 @@ export class Physics extends Middleware<MainContext> {
       const joint = this.world.createJoint(
         new RevoluteJoint(
           {
-            lowerAngle: data.isLeft ? 0 : -1,
-            upperAngle: data.isLeft ? 1 : 0,
+            lowerAngle: data.isLeft ? 0 : -0.9,
+            upperAngle: data.isLeft ? 0.9 : 0,
             enableLimit: true,
             motorSpeed: 0,
             maxMotorTorque: FLIPPER_TORQUE,

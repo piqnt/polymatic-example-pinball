@@ -94,12 +94,6 @@ export class SvgTable extends Middleware<MainContext> {
       } else if (type === "flipper-right") {
         this.rightFlipperBody = vertices;
         this.createRightFlipper();
-      } else if (type === "flipper-left") {
-        this.leftFlipperBody = vertices;
-        this.createLeftFlipper();
-      } else if (type === "flipper-right") {
-        this.rightFlipperBody = vertices;
-        this.createRightFlipper();
       } else if (type === "drain") {
         this.createDrain(vertices);
       } else if (type === "plunger") {
@@ -123,6 +117,8 @@ export class SvgTable extends Middleware<MainContext> {
         this.createKicker(vertices);
       } else if (type === "plunger") {
         this.createPlunger(vertices);
+      } else {
+        this.createWall(vertices);
       }
     },
 
@@ -141,6 +137,8 @@ export class SvgTable extends Middleware<MainContext> {
       } else if (type === "flipper-right") {
         this.rightFlipperBody = vertices;
         this.createRightFlipper();
+      } else {
+        this.createWall(vertices);
       }
     },
   };
@@ -196,7 +194,7 @@ export class SvgTable extends Middleware<MainContext> {
 const logSvgComponent = (shape: string, node: any, data: any) => {
   if (!DEBUG) return;
   const label = getLabel(node);
-  console.log("SVG Shape:", shape, label, node, data);
+  console.log("SVG Shape:", shape, label, node, JSON.stringify(data));
 };
 
 const getLabel = (node: any): string | undefined => {
