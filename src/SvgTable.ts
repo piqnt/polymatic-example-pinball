@@ -29,9 +29,11 @@ export class SvgTable extends Middleware<MainContext> {
 
     DEBUG && console.log(svgRaw);
 
+    const scaleX = 1 / UNIT_PER_METER;
+    const scaleY = -1 / UNIT_PER_METER; // flip y-axis
+
     const svg = await svgFactory(svgRaw, this.factory, {
-      meterPerPixelRatio: 1 / UNIT_PER_METER,
-      scaleY: -1,
+      transform: { a: scaleX, b: 0, c: 0, d: scaleY, e: 0, f: 0 },
     });
 
     const viewbox = svg.$.viewBox.split(" ").map(parseFloat);
