@@ -13,10 +13,10 @@ import {
   FLIPPER_SPEED,
   FLIPPER_TORQUE,
   KICKER_BOUNCE,
-  PLUNGER_POWER_INCREMENT,
-  PLUNGER_POWER_MAX,
+  PLUNGER_POWER,
   SLINGSHOT_BOUNCE,
 } from "./Config";
+import { FrameLoopEvent } from "planck-testbed";
 
 type BodyDataType = Ball | TablePart;
 
@@ -25,8 +25,7 @@ type BodyDataType = Ball | TablePart;
  */
 export class Physics extends Middleware<MainContext> {
   world: World;
-  time: number = 0;
-  timeStep = 1000 / 30;
+  dt: number = 0;
 
   constructor() {
     super();
@@ -46,7 +45,8 @@ export class Physics extends Middleware<MainContext> {
     this.context.world = this.world;
   }
 
-  handleFrameUpdate = () => {
+  handleFrameUpdate = (ev: FrameLoopEvent) => {
+    this.dt = ev.dt;
     // Update context data from physics
     this.binder.data([this.context.ball, ...this.context.parts, ...this.context.flippers, this.context.plunger]);
   };
@@ -289,8 +289,8 @@ export class Physics extends Middleware<MainContext> {
             lowerTranslation: 0,
             upperTranslation: 0,
             enableLimit: true,
-            motorSpeed: 15,
-            maxMotorForce: 10000,
+            motorSpeed: 10,
+            maxMotorForce: 1,
             enableMotor: true,
           },
           ground,
@@ -304,18 +304,20 @@ export class Physics extends Middleware<MainContext> {
     },
     update: (data, { joint, body }) => {
       if (this.context.plungerPressed) {
-        // pulling down
-        data.power = Math.max(-PLUNGER_POWER_MAX, data.power - PLUNGER_POWER_INCREMENT);
+        // pressing
+        data.press += PLUNGER_POWER * (this.dt / 1000);
+        data.press = Math.min(PLUNGER_POWER, data.press);
       } else {
-        if (data.power < 0) {
-          // released
-          data.power = -data.power;
+        if (data.press > 0) {
+          // just released
+          data.press = -data.press;
         } else {
-          // relaxed
-          data.power = Math.max(0, data.power - PLUNGER_POWER_INCREMENT);
+          // bounce back
+          data.press += PLUNGER_POWER * (this.dt / 200);
+          data.press = Math.min(0, data.press);
         }
       }
-      joint.setLimits(-PLUNGER_POWER_MAX * 1.1, data.power);
+      joint.setLimits(-PLUNGER_POWER * 1.1, -data.press);
     },
     exit: (data, { body }) => {
       this.world.destroyBody(body);

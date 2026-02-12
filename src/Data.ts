@@ -89,7 +89,7 @@ export class Plunger {
   key = "plunger-" + Math.random();
   type = "plunger" as const;
 
-  power = 0;
+  press = 0;
 
   position: Vec2Value;
   vertices: Vec2Value[];
