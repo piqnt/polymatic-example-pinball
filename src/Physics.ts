@@ -1,16 +1,7 @@
 // Copyright (c) Ali Shakiba
 // Release under the MIT License
 
-import {
-  World,
-  Contact,
-  Body,
-  CircleShape,
-  ChainShape,
-  RevoluteJoint,
-  PolygonShape,
-  PrismaticJoint,
-} from "planck";
+import { World, Contact, Body, CircleShape, ChainShape, RevoluteJoint, PolygonShape, PrismaticJoint } from "planck";
 
 import { Binder, Driver, Middleware } from "polymatic";
 
@@ -313,12 +304,18 @@ export class Physics extends Middleware<MainContext> {
     },
     update: (data, { joint, body }) => {
       if (this.context.plungerPressed) {
-        data.power = Math.min(PLUNGER_POWER_MAX, data.power + PLUNGER_POWER_INCREMENT);
-        joint.setLimits(-PLUNGER_POWER_MAX * 1.1, -data.power);
+        // pulling down
+        data.power = Math.max(-PLUNGER_POWER_MAX, data.power - PLUNGER_POWER_INCREMENT);
       } else {
-        data.power = Math.max(0, data.power - PLUNGER_POWER_INCREMENT);
-        joint.setLimits(-PLUNGER_POWER_MAX * 1.1, data.power);
+        if (data.power < 0) {
+          // released
+          data.power = -data.power;
+        } else {
+          // relaxed
+          data.power = Math.max(0, data.power - PLUNGER_POWER_INCREMENT);
+        }
       }
+      joint.setLimits(-PLUNGER_POWER_MAX * 1.1, data.power);
     },
     exit: (data, { body }) => {
       this.world.destroyBody(body);
