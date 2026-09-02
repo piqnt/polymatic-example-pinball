@@ -2,7 +2,7 @@
 // Release under the MIT License
 
 import { Middleware } from "polymatic";
-import { ContainerLoader, DefaultTestbedContext, FrameLoop, StageLoader, WorldStep, WorldView } from "planck-testbed";
+import { ContainerLoader, DefaultTestbedContext, FrameLoop, StageLoader, WorldStep, WorldView } from "./testbed";
 
 import { Physics } from "./Physics";
 import { SvgTable } from "./SvgTable";
@@ -27,7 +27,7 @@ export class MainContext extends DefaultTestbedContext {
 export class Main extends Middleware<MainContext> {
   constructor() {
     super();
-    // imported from planck-testbed, for rendering the world
+    // copied from planck-testbed, for rendering the world
     this.use(new FrameLoop());
     this.use(new ContainerLoader());
     this.use(new StageLoader());

@@ -16,7 +16,7 @@ import {
   PLUNGER_POWER,
   SLINGSHOT_BOUNCE,
 } from "./Config";
-import { FrameLoopEvent } from "planck-testbed";
+import { FrameLoopEvent } from "./testbed";
 
 type BodyDataType = Ball | TablePart;
 

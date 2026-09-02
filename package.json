@@ -11,7 +11,7 @@
   "dependencies": {
     "events": "^3.3.0",
     "nanoid": "^5.1.6",
-    "planck-testbed": "^0.0.7",
+    "stage-js": "^1.0.1",
     "svg-play": "^0.1.5"
   },
   "peerDependencies": {
