@@ -1,0 +1,99 @@
+/* The Engineer's Plate (shell/EngineersPlate.tsx): any table drawn as its parts only, for debugging, like
+   a plate in an old engineering handbook. Parts are inked by kind, with the draughtsman's lines: solid for
+   walls, dash-dot for what the ball passes through, hatching for solid parts.
+
+   TableView marks each part, ball and pivot with data-role. Everything is hidden, and only those shown again:
+   visibility is the one thing a child can turn back on inside a hidden group. This overrides the table's own
+   styles and Inkscape's inline ones, hence !important. */
+
+/* on :root, for the patterns too (PlateDefs); --ink and --paper are the page's (index.html) */
+:root {
+  --plate-red: #9a2b1c;
+  --plate-indigo: #2d3f73;
+  --plate-ochre: #a8741e;
+  --plate-green: #5d6b35;
+  --plate-faded: #8a7a66;
+}
+
+/* the sheet: cream stock, aged at the corners, ruled in faint blue, heavier every fifth line */
+#table.engineers-plate > svg {
+  background:
+    linear-gradient(rgba(60, 100, 160, 0.16) 1px, transparent 1px) 0 0 / 60px 60px,
+    linear-gradient(90deg, rgba(60, 100, 160, 0.16) 1px, transparent 1px) 0 0 / 60px 60px,
+    linear-gradient(rgba(60, 100, 160, 0.08) 1px, transparent 1px) 0 0 / 12px 12px,
+    linear-gradient(90deg, rgba(60, 100, 160, 0.08) 1px, transparent 1px) 0 0 / 12px 12px,
+    radial-gradient(ellipse 70% 60% at 40% 35%, rgba(255, 252, 240, 0.6), transparent 70%),
+    radial-gradient(ellipse 60% 50% at 100% 100%, rgba(150, 105, 50, 0.16), transparent 70%),
+    radial-gradient(ellipse 50% 40% at 0% 0%, rgba(150, 105, 50, 0.1), transparent 70%),
+    var(--paper);
+}
+
+#table.engineers-plate svg * {
+  visibility: hidden !important;
+  /* a group's glow or shadow would still fall on the parts in it */
+  filter: none !important;
+  mask: none !important;
+  opacity: 1 !important;
+}
+
+#table.engineers-plate svg [data-role],
+#table.engineers-plate svg [data-role] * {
+  visibility: visible !important;
+  fill: none !important;
+  stroke: var(--ink) !important;
+  stroke-width: 1.4px !important;
+  stroke-dasharray: none !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.92 !important;
+  animation: none !important;
+}
+
+/* walls: a heavy line */
+#table.engineers-plate svg [data-role="wall"] { stroke-width: 2px !important; }
+#table.engineers-plate svg [data-role="post"] { fill: var(--ink) !important; }
+
+/* what kicks the ball, in oxide red; the solid ones hatched */
+#table.engineers-plate svg [data-role="slingshot"],
+#table.engineers-plate svg [data-role="kicker"] { stroke: var(--plate-red) !important; stroke-width: 2.4px !important; }
+#table.engineers-plate svg [data-role="bumper"] { stroke: var(--plate-red) !important; fill: url(#plate-hatch-red) !important; }
+#table.engineers-plate svg [data-role="bumper"].hit { fill: var(--plate-red) !important; }
+
+/* what the ball passes through, in indigo: the dash-dot of a centre line */
+#table.engineers-plate svg [data-role="rollover"],
+#table.engineers-plate svg [data-role="gate"],
+#table.engineers-plate svg [data-role="magnet"],
+#table.engineers-plate svg [data-role="spinner"] { stroke: var(--plate-indigo) !important; stroke-dasharray: 8 3 2 3 !important; }
+#table.engineers-plate svg [data-role="rollover"].lit,
+#table.engineers-plate svg [data-role="magnet"].active { fill: url(#plate-hatch-indigo) !important; }
+#table.engineers-plate svg [data-role="drain"] { stroke: var(--plate-faded) !important; stroke-dasharray: 10 3 2 3 !important; }
+
+/* targets, in indigo, hatched; a dropped one only its outline, dashed */
+#table.engineers-plate svg [data-role="target"],
+#table.engineers-plate svg [data-role="drop-target"] { stroke: var(--plate-indigo) !important; fill: url(#plate-hatch-indigo) !important; }
+#table.engineers-plate svg [data-role="target"].lit { fill: var(--plate-indigo) !important; }
+#table.engineers-plate svg [data-role="drop-target"].down { fill: none !important; stroke-dasharray: 3 3 !important; }
+
+/* holes that keep the ball: a ring, filled while they hold one */
+#table.engineers-plate svg [data-role="saucer"] { stroke: var(--plate-red) !important; }
+#table.engineers-plate svg [data-role="saucer"].full { fill: url(#plate-hatch-red) !important; }
+#table.engineers-plate svg [data-role="lock"] { stroke: var(--plate-ochre) !important; stroke-width: 2px !important; }
+#table.engineers-plate svg [data-role="lock"].full { fill: url(#plate-hatch-ochre) !important; }
+
+/* what moves, in ochre */
+#table.engineers-plate svg [data-role="flipper"] { stroke: var(--plate-ochre) !important; stroke-width: 1.8px !important; fill: var(--paper) !important; }
+#table.engineers-plate svg [data-role="plunger"] { stroke: var(--plate-ochre) !important; fill: url(#plate-hatch-ochre) !important; }
+#table.engineers-plate svg [data-role="disc"] { stroke: var(--plate-ochre) !important; stroke-dasharray: 8 3 2 3 !important; }
+#table.engineers-plate svg [data-role="captive-ball"] { fill: url(#plate-hatch-ink) !important; }
+
+/* ramps, in green: their walls solid, their ends dash-dot */
+#table.engineers-plate svg [data-role="ramp-wall"] { stroke: var(--plate-green) !important; stroke-width: 1.8px !important; }
+#table.engineers-plate svg [data-role="ramp-enter"],
+#table.engineers-plate svg [data-role="ramp-exit"] { stroke: var(--plate-green) !important; stroke-dasharray: 8 3 2 3 !important; }
+
+/* a pivot: the draughtsman's crosshair */
+#table.engineers-plate svg [data-role="pivot"] { fill: url(#plate-cross) !important; stroke-width: 1px !important; }
+
+/* the ball: a circle in ink, stippled */
+#table.engineers-plate svg [data-role="ball"] { fill: url(#plate-dots) !important; stroke: var(--ink) !important; stroke-width: 1.4px !important; opacity: 1 !important; }
